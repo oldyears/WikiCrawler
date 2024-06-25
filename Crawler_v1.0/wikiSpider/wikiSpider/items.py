@@ -20,7 +20,7 @@ class WikispiderItem(scrapy.Item):
     residence = scrapy.Field()
     highest_degree = scrapy.Field()
     time_in_politics = scrapy.Field()
-    # number_of_politics = scrapy.Field()
+    number_of_politics = scrapy.Field()
     number_of_elections = scrapy.Field()
     aveSup_elections = scrapy.Field()
     sucRate_elections = scrapy.Field()
