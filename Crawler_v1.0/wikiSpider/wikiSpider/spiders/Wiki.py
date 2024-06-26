@@ -5,7 +5,8 @@ from wikiSpider.items import WikispiderItem
 class WikiSpider(scrapy.Spider):
     name = "Wiki"
     allowed_domains = ["zh.wikipedia.org"]
-    start_urls = ["https://zh.wikipedia.org/wiki/%E8%91%89%E5%85%83%E4%B9%8B"]
+    start_urls = ["https://zh.wikipedia.org/wiki/%E7%BE%85%E8%87%B4%E6%94%BF",
+                    "https://zh.wikipedia.org/wiki/%E8%91%89%E5%85%83%E4%B9%8B"]
 
 
     def parse(self, response):
@@ -17,45 +18,14 @@ class WikiSpider(scrapy.Spider):
 
         ### 先处理可以直接爬取的数据
         ## 由于每个人的个人资料不同，所以合理的做法是取person的个人资料全部属性分别存储
+
         # 姓名
         re = response.xpath('//*[@id="firstHeading"]/span/text()')
         name = re.get() if len(re) > 0 else None
-        
-        # 年龄
-        re = response.xpath("//span[@class='noprint ForceAgeToShow']/text()[2]")
-        age = re.get().strip('）') if len(re) > 0 else None
 
         # 职位：考虑到有些人不存在此选项，所以取第一个职位信息，若无则置空
-         
-        current_position = response.xpath("//tr[following-sibling::tr[1][contains(., '现任')]]")[0].xpath('string(.)').get().strip()
-        
-        # 政党
-        re = response.xpath("//tr[th[@scope='row' and contains(text(), '政党')]]/td/a/text()")
-        political_parties = re.get().strip() if len(re) > 0 else None
-
-        # 国籍
-        re = response.xpath("//tr[th[@scope='row' and contains(text(), '国籍')]]/td/a/text()")
-        nationality = re.get().strip() if len(re) > 0 else None
-        
-        # 职业
-        re = response.xpath("//tr[th[@scope='row' and contains(text(), '职业')]]/td/div/ul/li/text()")
-        career = re.getall() if len(re) > 0 else None
-        
-        # 配偶
-        re = response.xpath("//tr[th[@scope='row' and contains(text(), '配偶')]]/td/a/text()")
-        spouse = re.get().strip() if len(re) > 0 else None
-        
-        # 儿女
-        re = response.xpath("//tr[th[@scope='row' and contains(text(), '儿女')]]/td/text()[1]")
-        children = re.get().strip() if len(re) > 0 else None
-        
-        # 亲属
-        re = response.xpath("//tr[th[@scope='row' and contains(text(), '亲属')]]/td//text()")
-        relatives = re.extract() if len(re) > 0 else None
-        
-        # 居住地
-        re = response.xpath("//tr[th[@scope='row' and contains(text(), '居住地')]]/td/a/text()")
-        residence = re.get().strip() if len(re) > 0 else None
+        re = response.xpath("//tr[following-sibling::tr[1][contains(., '现任')]]")
+        current_position = re[0].xpath('string(.)').get().strip() if len(re) > 0 else None
         
         # 最高学历
         re = response.xpath("//div[text()='学历']/following::ul/li/ul/ul/li[last()]")
@@ -90,20 +60,27 @@ class WikiSpider(scrapy.Spider):
         sucRate_elections = f"{sucRate_elections}%"
         
         item['name'] = name
-        item['age'] = age
-        item['nationality'] = nationality
+
+        # 单纯只爬取个人资料
+        res = response.xpath("//tr[th[@colspan='2' and contains(text(), '个人资料')]]/following::tr")
+
+        for re in res:
+            re_str = re.xpath('string(.)').get()
+            if len(re_str) == 0:
+                break
+
+            attr_th = re.xpath('th')
+            attr = attr_th.xpath('string(.)').get()
+            re_str = re_str.replace(attr, "").strip()
+            item[attr] = re_str
+
         item['current_position'] = current_position
-        item['political_parties'] = political_parties
-        item['career'] = career
-        item['spouse'] = spouse
-        item['children'] = children
-        item['relatives'] = relatives
-        item['residence'] = residence
         item['highest_degree'] = highest_degree
         item['time_in_politics'] = time_in_politics
         item['number_of_elections'] = number_of_elections
         item['aveSup_elections'] = aveSup_elections
         item['sucRate_elections'] = sucRate_elections
+
 
 
         return item
