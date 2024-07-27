@@ -19,17 +19,18 @@ class WikiSpider(scrapy.Spider):
 
         # 提取所有标记为 "PERSON" 的姓名
         person_names = set([])
-        for article in data[:10]:
+        for article in data:
             for entity in article:
                 if entity[1] == "PERSON":
                     person_names.add(entity[0])
 
-        # 动态生成 URL 并发起请求
-        for name in person_names:
-            # https://zh.wikipedia.org/wiki/%E7%BE%85%E8%87%B4%E6%94%BF
-            encoded_name = quote(name, encoding='UTF-8')
-            dynamic_url = f"{base_url}/{encoded_name}"
-            yield scrapy.Request(url=dynamic_url, callback=self.parse)
+        # # 动态生成 URL 并发起请求
+        # for name in person_names:
+        #     # https://zh.wikipedia.org/wiki/%E7%BE%85%E8%87%B4%E6%94%BF
+        #     encoded_name = quote(name, encoding='UTF-8')
+        #     dynamic_url = f"{base_url}/{encoded_name}"
+
+        yield scrapy.Request(url="https://zh.wikipedia.org/wiki/%E8%B3%B4%E6%B8%85%E5%BE%B7", callback=self.parse)
 
 
     def parse(self, response):
@@ -110,4 +111,6 @@ class WikiSpider(scrapy.Spider):
             item['sucRate_elections'] = sucRate_elections
 
 
-        return item
+        if len(item) > 3:
+            return item
+            
