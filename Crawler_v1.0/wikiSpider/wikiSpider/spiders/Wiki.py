@@ -13,7 +13,7 @@ class WikiSpider(scrapy.Spider):
         base_url = "https://zh.wikipedia.org/wiki"
 
         # 读取所有person
-        file_path = '../../news_ner.json'
+        file_path = '../../../empty_all_t.txt'
         with open(file_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
 
